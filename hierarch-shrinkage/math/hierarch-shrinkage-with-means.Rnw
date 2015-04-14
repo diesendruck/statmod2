@@ -1,0 +1,274 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=.7in]{geometry}
+\usepackage{graphicx}
+\usepackage{titling}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\renewcommand{\theenumiv}{\arabic{enumiv}}
+\setlength{\droptitle}{-5em}
+\author{Maurice Diesendruck\vspace{-2ex}}
+\title{StatMod2 - Hierarchical Models - Exercises 4\vspace{-1ex}}
+\begin{document}
+\maketitle
+
+\section{School Averages and Sample Size}
+
+Larger samples tend to "smooth" out extreme scores, so small samples are more 
+likely to be extreme.\\
+
+<<echo=9:16, warning=FALSE, fig.height=3.2>>=
+# Statmod - Hierarchical Models and Shrinkage - Execise 4
+
+library(stats)
+library(knitr)
+
+path <- paste("~/Google Drive/2. SPRING 2015/STAT MOD 2 - Prof Scott/",
+  "hierarch-shrinkage/math", sep="")
+setwd(path)
+
+data <- read.csv("mathtest.csv")
+attach(data)
+boxplot(mathscore ~ school, xlab="School", ylab="Score")
+school.avgs <- aggregate(data, list(school=school), mean)[,3]
+school.ssizes <- aggregate(data, list(school=school), length)[,3]
+plot(cbind(school.avgs, school.ssizes))
+fit <- lowess(cbind(school.avgs, school.ssizes))
+lines(fit)
+@
+
+\section{Normal Hierarchical Model with Gibbs Sampling}
+
+\subsection{Model}
+For school $i=1,\cdots,p$; student $j=1,\cdots,n_i$; and $\sum n_i = n$; 
+let $a=b=c=d=1$, and note that for this data, $p=100$ and $n=1993$:
+\begin{align*}
+  y_{ij} &\sim\ N(\theta_i,\sigma^2)\\
+  \theta_i &\sim\ N(\mu,\tau^2)\\
+  \mu &\sim\ Unif(40, 60)\\
+  \sigma^2 &\sim\ InvGa(a,b)\\
+  \tau^2 &\sim\ InvGa(c,d)\\
+\end{align*}
+
+Or alternatively,
+
+\begin{align*}
+  \bar{y_i} &\sim\ N(\theta_i,\frac{\sigma^2}{n_i})\\
+  \theta_i &\sim\ N(\mu,\tau^2)\\
+  \mu &\sim\ Unif(40, 60)\\
+  \sigma^2 &\sim\ InvGa(a,b)\\
+  \tau^2 &\sim\ InvGa(c,d)\\
+\end{align*}
+\begin{align*}
+  N(\pmb{\bar{y}}|\pmb{\theta},\sigma^2 diag(1/n_i))
+    N(\pmb{\theta}|\pmb{\mu}, \tau^2 I_p)
+    Unif(\mu|40,60)
+		Ga(\dfrac{1}{\sigma^2}|a, b) Ga(\dfrac{1}{\tau^2}|c, d)\\
+\end{align*}
+
+
+\subsection{Joint and Posterior Distributions}
+
+Let $\pmb{\nu} = (\pmb{\theta}, \pmb{\mu}, \sigma^2, \tau^2)$; 
+$\pmb{\theta}=\theta_1,\cdots,\theta_p$; 
+$\pmb{\sigma_{*}^{2}} = \sigma^2 diag(1/n_i)$;
+$\pmb{\bar{y}}$ be the $p$x$1$ vector
+of mean math scores for all schools;
+and note that $\pmb{\mu}$ is a $p$x$1$
+vector with a single value, $\mu$.
+\begin{align*}
+  P(\pmb{\nu}|\pmb{y}) &\propto\ P(\pmb{y}|\pmb{\nu})P(\pmb{\nu})\\
+  &= N(\pmb{\bar{y}}|\pmb{\theta},\pmb{\sigma_{*}^{2}})
+    N(\pmb{\theta}|\pmb{\mu}, \tau^2 I_p)
+    Unif(\mu|40,60)
+  	Ga(\dfrac{1}{\sigma^2}|a, b) Ga(\dfrac{1}{\tau^2}|c, d)\\
+  &= \Big( \frac{1}{\pmb{\sigma_{*}^{2}}} \Big) ^{p/2}
+    exp \Big( -\frac{1}{2} \frac{(\pmb{\bar{y}}-\pmb{\theta})'
+    (\pmb{\bar{y}}-\pmb{\theta})}{\pmb{\sigma_{*}^{2}}} \Big)\\
+    &\hspace{10mm} \text{x } \Big( \dfrac{1}{\tau^2} \Big) ^{p/2}
+			exp \Big( -\frac{1}{2} \Big( \dfrac{(\pmb{\theta}-\pmb{\mu})'
+        (\pmb{\theta}-\pmb{\mu)}} {\tau^2} \Big)\Big)\\
+		& \hspace{10mm} \text{x } \Big( \dfrac{1}{\sigma^2} \Big) 
+			^{a-1} exp \Big( -b \Big( \dfrac{1}{\sigma^2} \Big) \Big)\\
+		& \hspace{10mm} \text{x } \Big( \dfrac{1}{\tau^2} \Big) 
+			^{c-1} exp \Big( -d \Big( \dfrac{1}{\tau^2} \Big) \Big)\\
+%   &= \prod_{i=1}^p \Bigg[
+%     \prod_{j\in \pmb{y_i}} N(y_{ij}|\theta_i,\sigma^2)
+%     \Bigg]
+%   	N(\pmb{\theta}|\pmb{\mu}, \tau^2 I_p)
+%     Unif(\mu|40,60)
+% 		Ga(\dfrac{1}{\sigma^2}|a, b) Ga(\dfrac{1}{\tau^2}|c, d)\\
+% 	&\propto\ \prod_{i=1}^p \Bigg[
+%     \Big( \dfrac{1}{\sigma^2} \Big) ^{n_i/2} 
+% 		exp \Big( -\frac{1}{2} \Big( \dfrac{\sum_{j\in \pmb{y_i}}
+%       (y_{ij}-\theta_i)^2}
+% 			{\sigma^2} \Big) \Big) \Bigg]\\
+% 		&\hspace{10mm} \text{x } \Big( \dfrac{1}{\tau^2} \Big) ^{p/2}
+% 			exp \Big( -\frac{1}{2} \Big( \dfrac{(\pmb{\theta}-\pmb{\mu})'
+%         (\pmb{\theta}-\pmb{\mu)}} {\tau^2} \Big)\Big)\\
+% 		& \hspace{10mm} \text{x } \Big( \dfrac{1}{\sigma^2} \Big) 
+% 			^{a-1} exp^{-b \Big( \dfrac{1}{\sigma^2} \Big)}\\
+% 		& \hspace{10mm} \text{x } \Big( \dfrac{1}{\tau^2} \Big) 
+% 			^{c-1} exp^{-d \Big( \dfrac{1}{\tau^2} \Big)}\\
+\end{align*}
+
+Conditional distributions are as follows:
+
+\begin{align*}
+P(\pmb{\theta}|\pmb{\bar{y}},\pmb{\mu}, \sigma^2, \tau^2) 
+  &\propto\ exp \Big( -\frac{1}{2} \Big( \dfrac{(\pmb{\bar{y}}-\pmb{\theta})'
+		(\pmb{\bar{y}}-\pmb{\theta})} {\pmb{\sigma_{*}^{2}}} + 
+		\dfrac{(\pmb{\theta}-\pmb{\mu})'(\pmb{\theta}-\pmb{\mu})} {\tau^2}
+		\Big) \Big)\\
+	&= exp \Big( -\frac{1}{2} \Big( 
+		\dfrac{\pmb{\bar{y}}'\pmb{\bar{y}}}{\pmb{\sigma_{*}^{2}}} -
+    \dfrac{\pmb{\bar{y}}'\pmb{\theta}}{\pmb{\sigma_{*}^{2}}} -
+    \dfrac{\pmb{\theta}'\pmb{\bar{y}}}{\pmb{\sigma_{*}^{2}}} +
+    \dfrac{\pmb{\theta}'\pmb{\theta}}{\pmb{\sigma_{*}^{2}}} \Big) + \Big(
+    \dfrac{\pmb{\theta}'\pmb{\theta}}{\tau^2} -
+    \dfrac{\pmb{\theta}'\pmb{\mu}}{\tau^2} -
+    \dfrac{\pmb{\mu}'\pmb{\theta}}{\tau^2} +
+    \dfrac{\pmb{\mu}'\pmb{\mu}}{\sigma^2} \Big)
+    \Big)\\
+	&\sim\ N \Bigg( \Big( 
+    \frac{I_n}{\pmb{\sigma_{*}^{2}}} +  \frac{I_n}{\tau^2} \Big) ^{-1}
+		\Big( \frac{\pmb{\bar{y}}}{\pmb{\sigma_{*}^{2}}} - 
+      \frac{\pmb{\mu}}{\tau^2} \Big) , 
+		\Big( \frac{I_n}{\pmb{\sigma_{*}^{2}}} + \frac{I_n}{\tau^2} \Big) ^{-1}
+		\Bigg)\\
+\vspace{10mm}\\
+P(\sigma^2|\pmb{y},\pmb{\theta},\tau^2) &\propto\
+	\Big( \dfrac{1}{\sigma^2} \Big) ^{n/2}
+	exp \Big( -\frac{1}{2} \Big( \dfrac{(\pmb{\bar{y}}-\pmb{\theta})'
+			(\pmb{\bar{y}}-\pmb{\theta})} {\pmb{\sigma_{*}^{2}}} \Big) \Big)\\
+	& \hspace{10mm} \text{x } \Big( \dfrac{1}{\sigma^2} \Big) 
+			^{a-1} exp \Big( -b \Big( \dfrac{1}{\sigma^2} \Big) \Big)\\
+	&= \Big( \dfrac{1}{\sigma^2} \Big) ^{n/2 + a -1}
+		exp \Big( - \Big( \dfrac{(\pmb{\bar{y}}-\pmb{\theta})'
+			(\pmb{\bar{y}}-\pmb{\theta})} {2 diag(1/n_i)} + b \Big)
+			\Big( \frac{1}{\sigma^2} \Big) \Big)\\
+	&\sim\ Ga \Big( n/2+a, \Big( \dfrac{(\pmb{\bar{y}}-\pmb{\theta})'
+			(\pmb{\bar{y}}-\pmb{\theta})} {2 diag(1/n_i)} + b \Big) \Big)\\
+\vspace{10mm}\\
+P(\tau^2|\pmb{y},\pmb{\theta},\sigma^2) &\propto\
+	\Big( \dfrac{1}{\tau^2} \Big) ^{p/2}
+	exp \Big( -\frac{1}{2} \Big( \dfrac{(\pmb{\theta}-\pmb{\mu})'
+    (\pmb{\theta}-\pmb{\mu})}{\tau^2}	\Big) \Big)\\
+	& \hspace{10mm} \text{x } \Big( \dfrac{1}{\tau^2} \Big) 
+			^{c-1} exp \Big( -d \Big( \dfrac{1}{\tau^2} \Big) \Big)\\
+	&= \Big( \dfrac{1}{\tau^2} \Big) ^{p/2 + c -1}
+		exp \Big( - \Big( \dfrac{(\pmb{\theta}-\pmb{\mu})'
+      (\pmb{\theta}-\pmb{\mu})}{2} + d \Big)
+			\Big( \frac{1}{\tau^2} \Big) \Big)\\
+	&\sim\ Ga \Big( p/2+c, \Big( \dfrac{(\pmb{\theta}-\pmb{\mu})'
+    (\pmb{\theta}-\pmb{\mu})}{2} + d \Big) \Big)\\
+\vspace{10mm}
+P(\pmb{\mu}|\pmb{y},\pmb{\theta}, \sigma^2, \tau^2) 
+  &\propto\ exp \Big( -\frac{1}{2} \Big( 
+  	\dfrac{(\pmb{\theta}-\pmb{\mu})'(\pmb{\theta}-\pmb{\mu})} {\tau^2}
+		\Big) \Big)\\
+  &\sim\ N(\pmb{\bar{\theta}}, \tau^2)
+\end{align*}
+
+
+\subsection{Gibbs Sampler}
+
+<<echo=FALSE>>=
+library(MASS)
+data <- read.csv("mathtest.csv")
+n <- dim(data)[1]
+I.n <- diag(n)
+y <- data$mathscore
+y.bars <- school.avgs
+y.sizes <- school.ssizes
+plot(y.sizes,y.bars)
+p <- length(ybars)
+
+init <- function() { # initialize parameters
+  a=1; b=1; c=1; d=1;
+  sigmasq <- 1/(rgamma(1, a, b))
+  tausq <- 1/(rgamma(1, c, d))
+  mu.val <- runif(1, 40, 60)
+  mu <- rep(mu.val, n)
+  return (params=list(tausq=tausq, sigmasq=sigmasq, mu=mu,
+                      a=a, b=b, c=c, d=d))
+}
+
+gibbs <- function(n.iter, verbose) {
+  PARAMS <- NULL
+  params <- init()  
+  tausq <- params$tausq
+  sigmasq <- params$sigmasq
+  mu <- params$mu
+  a <- params$a
+  b <- params$b
+  c <- params$c
+  d <- params$d
+  
+  for (t in 1:n.iter) { # loop over iterations
+    theta <- sample.theta(sigmasq, tausq, mu)
+    sigmasq <- sample.sigmasq(theta, a, b)
+    tausq <- sample.tausq(theta, mu, c, d)
+    mu <- sample.mu(theta, tausq)
+    ## Save iteration. First p columns are theta; followed by others.
+    PARAMS <- rbind(PARAMS, c(theta, sigmasq, tausq, mu))
+  }
+  return(list(PARAMS=PARAMS))
+}
+
+sample.theta <- function(sigmasq, tausq, mu) {
+  cov <- solve(I.n/sigmasq+I.n/tausq)
+  mean <- cov%*%(y/sigmasq-mu/tausq)
+  theta <- mvrnorm(1, mu=mean, Sigma=cov)
+  return (theta)
+}
+sample.sigmasq <- function(theta, a, b) {
+  shape <- n/2 + a
+  rate <- t(y-theta)%*%(y-theta)/2 + b
+  sigmasq <- rgamma(1, shape=shape, rate=rate)
+  return (1/sigmasq)
+}
+sample.tausq <- function(theta, mu, c, d) {
+  shape <- p/2 + c
+  rate <- t(theta-mu)%*%(theta-mu)/2 + d
+  tausq <- rgamma(1, shape=shape, rate=rate)
+  return (1/tausq)
+}
+sample.mu <- function(theta, tausq) {
+  avg <- mean(theta)
+  mu <- mvrnorm(1, mu=avg, Sigma=tausq*I.n)
+  return (mu)
+}
+
+ex <- function() { 
+  ## RUN these lines to get the plots
+  n.iter <- 1000; verbose=0
+  gbs <- gibbs(n.iter, verbose)
+  PARAMS <- gbs$PARAMS
+  its <- 1:n.iter
+  
+  par(mfrow=c(5,2))
+  for (i in 1:p) {
+    ## trajectory plot of theta_1 (out of theta_1,...,theta_p).
+    plot(its, PARAMS[,p],xlab="ITER",ylab="Theta",bty="l",type="l",
+         main=paste("Trajectories of Theta", i))
+  }
+    
+  ## trajectory plot of SigmaSq
+  plot(its, PARAMS[,p+1],xlab="ITER",ylab="SigmaSq",bty="l",type="l",
+       main="Trajectories of SigmaSq")
+  ## trajectory plot of TauSq
+  plot(its, PARAMS[,p+2],xlab="ITER",ylab="TauSq",bty="l",type="l",
+       main="Trajectories of TauSq")
+  
+}
+
+@
+
+\subsection{Shrinkage}
+
+In general, the smaller the sample size, the more extreme the sample mean, and the larger the shrinkage factor. 
+
+\end{document}
+

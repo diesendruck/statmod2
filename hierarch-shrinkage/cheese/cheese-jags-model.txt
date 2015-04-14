@@ -1,0 +1,16 @@
+model {
+  for (j in 1:N) {
+    LOG.Q[j] ~ dnorm(mean[j], sigsq)
+    mean[j] <- beta[1] + beta[2]*log.P[j] + beta[3]*disp[j] +
+               beta[4]*cross[j]
+  }
+  beta[1] ~ dnorm(8.8, tau1) # Log alpha_i. ~ Volume intercept
+  beta[2] ~ dnorm(-0.89, tau2) # Beta_i. ~ Price elasticity of demand
+  beta[3] ~ dnorm(0.77, tau3) # Gamma_i. ~ Display effect
+  beta[4] ~ dnorm(-0.40, tau4) # Delta_i. ~ Display*Price effect
+  sigsq ~ dgamma(1, 1)
+  tau1 ~ dgamma(1, 1)
+  tau2 ~ dgamma(1, 1)
+  tau3 ~ dgamma(1, 1)
+  tau4 ~ dgamma(1, 1)
+}

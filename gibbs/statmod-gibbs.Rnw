@@ -1,0 +1,286 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{titling}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\renewcommand{\theenumiv}{\arabic{enumiv}}
+\setlength{\droptitle}{-5em}
+\author{Maurice Diesendruck}
+\title{StatMod2 - Gibbs - Exercises 4}
+\begin{document}
+%\SweaveOpts{concordance=TRUE}
+\maketitle
+
+
+\section{Model}
+\begin{align*}
+  \pmb{y} &\sim\ N(X\pmb{\beta}, \sigma^2\pmb{I_n})
+		\text{ for i.i.d. } y_1, \cdots, y_n\\
+	\pmb{\beta}|\tau^2 &\sim\ N(\pmb{0}, \tau^2\pmb{I_p})
+		\text{ for i.i.d. } \beta_1, \cdots, \beta_p\\
+	\sigma^2 &\sim\ IG(a/2, b/2) \equiv
+		\Big(\frac{1}{\sigma^2} \Big) \sim\ Ga(a/2, b/2) \hspace{2mm}\dagger\\
+	\tau^2 &\sim\ IG(c/2, d/2)\equiv
+		\Big(\frac{1}{\sigma^2} \Big) \sim\ Ga(a/2, b/2) \hspace{2mm}\dagger\\
+	\dagger &\text{ For notational convenience, the following distributions
+		use } Ga(a, b){.}\\
+		& \text{ In R, } a \text{ and } b \text{ are initialized as 1/2.}
+\end{align*}
+
+\section{Joint Posterior}
+Let $\pmb{\theta} = (\pmb{\beta}, \sigma^2, \tau^2)$.
+\begin{align*}
+	P(\pmb{\theta}|y) &\propto\ P(y|\pmb{\theta})P(\pmb{\theta})\\
+	&= N(y|X\pmb{\beta},\sigma^2)
+		N(\pmb{\beta}|\pmb{0}, \tau^2\pmb{I_p})
+		Ga(\dfrac{1}{\sigma^2}|a, b) Ga(\dfrac{1}{\tau^2}|c, d)\\
+	&\propto\ \Big( \dfrac{1}{\sigma^2} \Big) ^{n/2} 
+		exp \Big( -\frac{1}{2} \Big( \dfrac{(\pmb{y}-X\pmb{\beta})'
+			(\pmb{y}-X\pmb{\beta})} {\sigma^2} \Big) \Big)\\
+		&\hspace{10mm} \text{x } \Big( \dfrac{1}{\tau^2} \Big) ^{p/2}
+			exp \Big( -\frac{1}{2} \dfrac{\pmb{\beta}'\pmb{\beta}}{\tau^2}
+			\Big)\Big)\\
+		& \hspace{10mm} \text{x } \Big( \dfrac{1}{\sigma^2} \Big) 
+			^{a-1} exp^{-b \Big( \dfrac{1}{\sigma^2} \Big)}\\
+		& \hspace{10mm} \text{x } \Big( \dfrac{1}{\tau^2} \Big) 
+			^{c-1} exp^{-d \Big( \dfrac{1}{\tau^2} \Big)}\\
+\end{align*}
+
+\section{Full Conditionals}
+\begin{align*}
+P(\pmb{\beta}|\pmb{y}, \sigma^2, \tau^2) &\propto\
+	exp \Big( -\frac{1}{2} \Big( \dfrac{(\pmb{y}-X\pmb{\beta})'
+			(\pmb{y}-X\pmb{\beta})} {\sigma^2} + 
+			\dfrac{\pmb{\beta}'\pmb{\beta}}{\tau^2}
+			\Big) \Big)\\
+	&= exp \Big( -\frac{1}{2} \Big( 
+		\dfrac{\pmb{y}'\pmb{y}}{\sigma^2}
+		- \dfrac{\pmb{y}'X\pmb{\beta}}{\sigma^2}
+		- \dfrac{\pmb{\beta}'X'\pmb{y}}{\sigma^2}
+		+ \beta' ( \frac{X'X}{\sigma^2} + \frac{I_p}{\tau^2} ) \beta 
+		\Big) \Big)\\
+	&\sim\ N \Bigg( \Big( \frac{X'X}{\sigma^2} + \frac{I_p}{\tau^2} \Big) ^{-1}
+		\frac{X'Y}{\sigma^2} , 
+		\Big( \frac{X'X}{\sigma^2} + \frac{I_p}{\tau^2} \Big) ^{-1}
+		\Bigg)\\
+\vspace{10mm}\\
+P(\sigma^2|\pmb{y},\pmb{\beta},\tau^2) &\propto\
+	\Big( \dfrac{1}{\sigma^2} \Big) ^{n/2}
+	exp \Big( -\frac{1}{2} \Big( \dfrac{(\pmb{y}-X\pmb{\beta})'
+			(\pmb{y}-X\pmb{\beta})} {\sigma^2} \Big) \Big)\\
+	& \hspace{10mm} \text{x } \Big( \dfrac{1}{\sigma^2} \Big) 
+			^{a-1} exp^{-b \Big( \dfrac{1}{\sigma^2} \Big)}\\
+	&= \Big( \dfrac{1}{\sigma^2} \Big) ^{n/2 + a -1}
+		exp \Big( - \Big( \dfrac{(\pmb{y}-X\pmb{\beta})'
+			(\pmb{y}-X\pmb{\beta})} {2} + b \Big)
+			\Big( \frac{1}{\sigma^2} \Big) \Big)\\
+	&\sim\ Ga \Big( n/2+a, \Big( \dfrac{(\pmb{y}-X\pmb{\beta})'
+			(\pmb{y}-X\pmb{\beta})} {2} + b \Big) \Big)\\
+\vspace{10mm}\\
+P(\tau^2|\pmb{y},\pmb{\beta},\sigma^2) &\propto\
+	\Big( \dfrac{1}{\tau^2} \Big) ^{p/2}
+	exp \Big( -\frac{1}{2} \Big( \dfrac{\pmb{\beta}'\pmb{\beta}}{\tau^2}
+			\Big) \Big)\\
+	& \hspace{10mm} \text{x } \Big( \dfrac{1}{\tau^2} \Big) 
+			^{c-1} exp^{-d \Big( \dfrac{1}{\tau^2} \Big)}\\
+	&= \Big( \dfrac{1}{\tau^2} \Big) ^{p/2 + c -1}
+		exp \Big( - \Big( \dfrac{\pmb{\beta}'\pmb{\beta}}{2} + d \Big)
+			\Big( \frac{1}{\tau^2} \Big) \Big)\\
+	&\sim\ Ga \Big( p/2+c, \Big( \dfrac{\pmb{\beta}'\pmb{\beta}}{2}
+		 + d \Big) \Big)\\
+\end{align*}
+
+\section{Results}
+
+These are the means of $\beta_1,\cdots,\beta_p$. Each also mixed appropriately.
+
+<<fig=FALSE, echo=FALSE>>= 
+
+library(MCMCpack)
+library(BayesBridge)
+library(MASS)
+
+# Get data and initialize constants.
+data(diabetes, package="BayesBridge")
+y <- diabetes$y
+y <- y - mean(y);
+X <- diabetes$x
+XtX <- t(X)%*%X
+Xty <- t(X)%*%y
+n <- dim(X)[1]
+p <- dim(X)[2]
+I.p <- diag(p)
+a=1; b=1; c=1; d=1;
+
+init <- function() { # initialize parameters
+  sigmasq <- 1/(rgamma(1, a/2, b/2))
+  tausq <- 1/(rgamma(1, c/2, d/2))
+  return (theta=list(tausq=tausq, sigmasq=sigmasq))
+}
+
+gibbs <- function(n.iter, verbose) {
+  THETA <- NULL
+  theta <- init()  
+  tausq <- theta$tausq
+  sigmasq <- theta$sigmasq
+  a <- theta$a
+  b <- theta$b
+  c <- theta$c
+  d <- theta$d
+  
+  for (i in 1:n.iter) { # loop over iterations
+    beta <- sample.beta(sigmasq, tausq)
+    sigmasq <- sample.sigmasq(beta)
+    tausq <- sample.tausq(beta)
+    if (verbose > 0){
+      if (i %% 10 == 0) {
+        # print short summary, for every 10th iteration
+        print(paste("Iteration: ", i))
+        print(round(z, 2))
+        print(round(q, 2))
+        print(round(r, 2))
+        print(round(pistar, 2))
+      }  
+    }
+    ## Save iteration. First p columns are Beta; followed by sigmasq, tausq.
+    THETA <- rbind(THETA, c(beta, sigmasq, tausq))
+  }
+  return(list(THETA=THETA))
+}
+
+sample.beta <- function(sigmasq, tausq) {
+  cov <- ginv(XtX/sigmasq+I.p/tausq)
+  mean <- cov%*%(Xty/sigmasq)
+  beta <- mvrnorm(1, mu=mean, Sigma=cov)
+  return (beta)
+}
+sample.sigmasq <- function(beta) {
+  shape <- n/2 + a
+  rate <- t(y-X%*%beta)%*%(y-X%*%beta)/2 + b
+  sigmasq <- rgamma(1, shape=shape, rate=rate)
+  return (1/sigmasq)
+}
+sample.tausq <- function(beta) {
+  shape <- p/2 + c
+  rate <- t(beta)%*%(beta)/2 + d
+  tausq <- rgamma(1, shape=shape, rate=rate)
+  return (1/tausq)
+}
+
+ex <- function() { 
+  ## RUN these lines to get the plots
+  n.iter <- 1000; verbose=0
+  gbs <- gibbs(n.iter, verbose)
+  THETA <- gbs$THETA
+  return (list(THETA, n.iter))
+}
+
+out <- ex()
+THETA <- out[[1]]
+n.iter <- out[[2]]
+its <- 1:n.iter
+
+print (colMeans(THETA[,1:p]))
+@
+
+\includegraphics{betas.png}
+
+<<fig=TRUE, echo=FALSE>>= 
+
+library(MCMCpack)
+library(BayesBridge)
+library(MASS)
+
+# Get data and initialize constants.
+data(diabetes, package="BayesBridge")
+y <- diabetes$y
+y <- y - mean(y);
+X <- diabetes$x
+XtX <- t(X)%*%X
+Xty <- t(X)%*%y
+n <- dim(X)[1]
+p <- dim(X)[2]
+I.p <- diag(p)
+a=1; b=1; c=1; d=1;
+
+init <- function() { # initialize parameters
+  sigmasq <- 1/(rgamma(1, a/2, b/2))
+  tausq <- 1/(rgamma(1, c/2, d/2))
+  return (theta=list(tausq=tausq, sigmasq=sigmasq))
+}
+
+gibbs <- function(n.iter, verbose) {
+  THETA <- NULL
+  theta <- init()  
+  tausq <- theta$tausq
+  sigmasq <- theta$sigmasq
+  a <- theta$a
+  b <- theta$b
+  c <- theta$c
+  d <- theta$d
+  
+  for (i in 1:n.iter) { # loop over iterations
+    beta <- sample.beta(sigmasq, tausq)
+    sigmasq <- sample.sigmasq(beta)
+    tausq <- sample.tausq(beta)
+    if (verbose > 0){
+      if (i %% 10 == 0) {
+        # print short summary, for every 10th iteration
+        print(paste("Iteration: ", i))
+        print(round(z, 2))
+        print(round(q, 2))
+        print(round(r, 2))
+        print(round(pistar, 2))
+      }  
+    }
+    ## Save iteration. First p columns are Beta; followed by sigmasq, tausq.
+    THETA <- rbind(THETA, c(beta, sigmasq, tausq))
+  }
+  return(list(THETA=THETA))
+}
+
+sample.beta <- function(sigmasq, tausq) {
+  cov <- ginv(XtX/sigmasq+I.p/tausq)
+  mean <- cov%*%(Xty/sigmasq)
+  beta <- mvrnorm(1, mu=mean, Sigma=cov)
+  return (beta)
+}
+sample.sigmasq <- function(beta) {
+  shape <- n/2 + a
+  rate <- t(y-X%*%beta)%*%(y-X%*%beta)/2 + b
+  sigmasq <- rgamma(1, shape=shape, rate=rate)
+  return (1/sigmasq)
+}
+sample.tausq <- function(beta) {
+  shape <- p/2 + c
+  rate <- t(beta)%*%(beta)/2 + d
+  tausq <- rgamma(1, shape=shape, rate=rate)
+  return (1/tausq)
+}
+
+ex <- function() { 
+  ## RUN these lines to get the plots
+  n.iter <- 1000; verbose=0
+  gbs <- gibbs(n.iter, verbose)
+  THETA <- gbs$THETA
+  return (list(THETA, n.iter))
+}
+
+out <- ex()
+THETA <- out[[1]]
+n.iter <- out[[2]]
+its <- 1:n.iter
+
+layout(matrix(c(1,2), nrow=2))
+names <- c("Trajectories of SigmaSq", "Trajectories of TauSq")
+for (i in 1:2) {
+  plot(its, THETA[,p+i],xlab="ITER",bty="l",type="l",
+       main=names[i])
+}
+@
+
+
+\end{document}

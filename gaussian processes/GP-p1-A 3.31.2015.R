@@ -32,12 +32,12 @@ Main <- function() {
   # ------ Gaussian Processes (posterior) Part C - (p.3) ------ #
   
   #par(mfrow=c(2,1))
-  hyperparams <- c(117, 64, 0) # Paramaters solved by grid
+  hyperparams <- c(96, 36, 0) # Paramaters solved by grid
   #hyperparams <- c(1, 0.1, 0) # Parameters chosen by Mo.
   
   d <- GetData()
   inputs <- d$x
-  Y <- d$y
+  Y <- d$y - mean(d$y)
   n <- length(Y)
   results <- GaussianProcess(inputs, hyperparams, Matern52, Y)
   posterior.mean.and.cov <- results[[1]]
@@ -57,11 +57,12 @@ Main <- function() {
   yhat <- H %*% d$y
   r <- CalcResid(post.data, yhat, H, bw, opt=post.covs)
   
+  
   # ------ Gaussian Processes (marginal likelihood) Part E - (p.3) ------ #
   
   d <- GetData()
   inputs <- d$x
-  Y <- d$y
+  Y <- d$y - mean(d$y)
   n <- length(Y)
   plot(inputs, Y)
   hbs <- PerformLOOCV(d, bandwidth=NULL)
@@ -82,8 +83,8 @@ Main <- function() {
       likelihoods[i,j] <- v
     }
   }
-  b <- seq(0.01, 150, length=grid)[12]
-  t1.sq <- seq(0.01, 100, length=grid)[10]
+  b <- seq(0.01, 150, length=grid)[10]
+  t1.sq <- seq(0.01, 100, length=grid)[6]
 
   
   # ------ Gaussian Processes (posterior contours) Part F - (p.3) ------ #
@@ -175,13 +176,15 @@ WeatherContours <- function(name, hyperparams) {
   return (z)  
 }
 
+
 GaussianProcess <- function(inputs, hyperparams, kernel, Y) {
   # Runs main operations to perform Gaussian Process (GP), and plots results.
   #
   # Args:
   #   inputs: A vector of scalar points.
   #   hyperparams: A vector of three hyperparameters, (b, tau1^2, tau2^2)
-  #   Y: A flag with Y values, used to add diagonal error variance to 
+  #   kernel: Kernel to be used.
+  #   Y: Y values, used to add diagonal error variance to 
   #     covariance matrix, and to compute posterior mean.
   #
   # Returns:
@@ -211,10 +214,9 @@ GaussianProcess <- function(inputs, hyperparams, kernel, Y) {
     # For each point, compute posterior mean and covariance.
     n <- length(inputs)
     for (i in 1:n) {
-      # Compute posterior mean = u_x* + K(X*,X) %*% (K(X,X)+sigsq*I)^(-1) %*% (y-u_y)
+      # Compute posterior mean = K(X*,X) %*% (K(X,X)+sigsq*I)^(-1) %*% (y)
       k.xs.x <- as.matrix(Cov(inputs[i], inputs, hyperparams, kernel))
-      post.mean.i <- Y[i] + k.xs.x%*%ginv(post.c)%*%(Y-mean(Y)) # With mu's added.
-      #post.mean.i <- k.xs.x%*%ginv(post.c)%*%(Y) # Experimenting with not adding mu's.
+      post.mean.i <- k.xs.x%*%ginv(post.c)%*%(Y)
       post.cov.i <- Cov(inputs[i], inputs[i], hyperparams, kernel) - 
         k.xs.x%*%ginv(post.c)%*%t(k.xs.x)
       posterior.mean.and.cov[i,] <- c(post.mean.i, post.cov.i)

@@ -1,0 +1,125 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=.7in]{geometry}
+\usepackage{graphicx}
+\usepackage{titling}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\renewcommand{\theenumiv}{\arabic{enumiv}}
+\setlength{\droptitle}{-5em}
+\author{Maurice Diesendruck\vspace{-2ex}}
+\title{StatMod2 - Hierarchical Models and Shrinkage - Exercises 4\vspace{-1ex}}
+\begin{document}
+\maketitle
+\setcounter{section}{1}
+
+\section{Price Elasticity of Demand}
+
+\subsection{Model}
+Here, I used a linear model in the log-log form, and computed Gibbs sampling
+using JAGS. Exact likelihood and priors are shown below:\\
+
+<<echo=TRUE, eval=FALSE>>=
+# CONTENTS OF MODEL FILE
+model {
+for (j in 1:N) {
+  LOG.Q[j] ~ dnorm(mean[j], sigsq)
+  mean[j] <- beta[1] + beta[2]*log.P[j] + beta[3]*disp[j] +
+             beta[4]*cross[j]
+}
+beta[1] ~ dnorm(0,0.001) # Diffuse priors
+beta[2] ~ dnorm(0,0.001)
+beta[3] ~ dnorm(0,0.001)
+beta[4] ~ dnorm(0,0.001)
+sigsq ~ dgamma(1, 1)
+}
+@
+
+\subsection{Gibbs Sampler}
+
+The following Gibbs sampler (using JAGS), produces chains for variables
+$log\alpha_i$, $\beta_i$, $\gamma_i$, and $\delta_i$. In the code, these
+four variables are called $log.a$, $b$, $g$, and $d$.
+
+<<echo=TRUE, eval=FALSE>>=
+# StatMod2 - Cheese - JAGS Version
+
+library(rjags)
+library(boot)
+library(VGAM)
+library(MASS)
+
+# Fetch and prepare data.
+path <- paste("~/Google Drive/2. SPRING 2015/STAT MOD 2 - Prof Scott/",
+              "hierarch-shrinkage/cheese", sep="")
+setwd(path)
+data <- read.csv("cheese.csv")
+data$log.Q <- log(data$vol)
+data$log.P <- log(data$price)
+attach(data)
+n <- dim(data)[1]
+store.names <- unique(data$store)
+
+# Execute Gibbs sampler for all stores.
+Execute <- function() {
+  num.stores <- length(store.names)
+  # Make container for store name, and means of 4 vars: log.a, b, g, d.
+  PARAMS.BY.STORE <- matrix(NA, nrow=num.stores, ncol=5)
+  for (i in 1:num.stores) {
+    name <- toString(store.names[i])
+    store.data <- data[which(data$store==name),]
+    PARAMS.BY.STORE[i,] <- c(name, Gibbs(store.data, name))
+  }
+  return (PARAMS.BY.STORE)
+}
+
+Gibbs <- function(store.data, name) {
+  # Set up JAGS model over 3 variables.
+  jagsmodel <- jags.model(file="cheese-jags-model.txt",
+                           data=list(LOG.Q=store.data$log.Q,
+                                log.P=store.data$log.P,
+                                disp=store.data$disp,
+                                cross=store.data$log.P*store.data$disp,
+                                N=length(store.data$log.Q)),
+                           n.chains=2)
+  
+  # Fit jagsmodel.
+  jagsfit <- jags.samples(jagsmodel,
+                          variable.names=c("beta"),
+                          n.iter=100000, thin=1000)
+  
+  # Create traceplots for beta chains.
+  par(mfrow=c(4, 2))
+  ref <- c("log.a", "b", "g", "d")
+  for (i in 1:4) {
+    # jagsfit$var takes three arguments: parameter, row, chain.
+    plot(jagsfit$beta[i,,1], type="l", col="red", ylab="",
+         main=bquote(.(name) ~ .(ref[i]) == .(i)))
+    lines(jagsfit$beta[i,,2], type="l", col="blue")
+    plot(density(jagsfit$beta[i,,]), type="l",
+         main=bquote(.(name) ~ .(ref[i]) == .(i)))
+  }
+  
+  mean.params <- rowMeans(jagsfit$beta[,,1])
+  return (mean.params)
+}
+
+PARAMS.BY.STORE <- Execute()
+
+@
+
+Here is an example of the output for one store:\\
+
+\includegraphics[width=\textwidth]{store-example.png}
+
+The variable $PARAMS.BY.STORE$, holds the chain means for each variable. A
+subset of this matrix is shown below:\\
+
+\includegraphics[width=\textwidth]{PARAMS-BY-STORE-example.png}
+
+\includegraphics[width=\textwidth]{inspect-results.png}
+
+\end{document}
+
+

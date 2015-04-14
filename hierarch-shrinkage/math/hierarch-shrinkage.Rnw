@@ -1,0 +1,182 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=.7in]{geometry}
+\usepackage{graphicx}
+\usepackage{titling}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\renewcommand{\theenumiv}{\arabic{enumiv}}
+\setlength{\droptitle}{-5em}
+\author{Maurice Diesendruck\vspace{-2ex}}
+\title{StatMod2 - Hierarchical Models and Shrinkage - Exercises 4\vspace{-1ex}}
+\begin{document}
+\maketitle
+
+\section{School Averages and Sample Size}
+
+Larger samples tend to "smooth" out extreme scores, so small samples are more 
+likely to be extreme.\\
+
+<<echo=9:16, warning=FALSE, fig.height=3.2>>=
+# Statmod - Hierarchical Models and Shrinkage - Execise 4
+
+library(stats)
+library(knitr)
+
+setwd("~/Google Drive/2. SPRING 2015/STAT MOD 2 - Prof Scott/hierarch-shrinkage/math")
+
+data <- read.csv("mathtest.csv")
+attach(data)
+boxplot(mathscore ~ school, xlab="School", ylab="Score")
+school.avgs <- aggregate(data, list(school=school), mean)[,3]
+school.ssize <- aggregate(data, list(school=school), length)[,3]
+plot(cbind(school.avgs, school.ssize))
+fit <- lowess(cbind(school.avgs, school.ssize))
+lines(fit)
+@
+
+\subsection{Normal Hierarchical Model with Gibbs Sampling}
+
+\subsubsection{Model}
+For school $i=1,\cdots,p$; student $j=1,\cdots,n_i$; and $\sum n_i = n$; 
+let $a=b=c=d=1$, and note that for this data, $p=100$ and $n=1993$:
+\begin{align*}
+  y_{ij} &\sim\ N(\theta_i,\sigma^2)\\
+  \theta_i &\sim\ N(\mu,\tau^2)\\
+  \mu &\sim\ N(m, v)\\
+  \sigma^2 &\sim\ InvGa(a,b)\\
+  \tau^2 &\sim\ InvGa(c,d)\\
+\end{align*}
+
+\subsubsection{Joint and Posterior Distributions}
+
+See attached sheets.
+
+\subsubsection{Gibbs Sampler}
+
+The Gibbs Sampler produces the following results. Immediately below are the posterior estimates for $\theta$.
+
+<<echo=90:91, fig.height=3>>=
+library(MASS)
+data <- read.csv("mathtest.csv")
+n <- dim(data)[1]
+p <- max(data$school)
+I.n <- diag(n)
+I.p <- diag(p)
+one.p  <- rep(1, p)
+# Make X matrix, with indicators for school.
+X <- matrix(0, n, p)
+for (i in 1:n) {
+  school.num <- data$school[i]
+  X[i,school.num] <- 1
+}
+y <- data$mathscore
+
+init <- function() { # initialize parameters
+  a=1; b=1; c=1; d=1; m=50; v=5;
+  sigmasq <- 1/(rgamma(1, a, b))
+  tausq <- 1/(rgamma(1, c, d))
+  mu <- rnorm(1, m, sqrt(v))
+  return (params=list(tausq=tausq, sigmasq=sigmasq, mu=mu,
+                      a=a, b=b, c=c, d=d, m=m, v=v))
+}
+
+gibbs <- function(n.iter, verbose) {
+  PARAMS <- NULL
+  params <- init()  
+  tausq <- params$tausq
+  sigmasq <- params$sigmasq
+  mu <- params$mu
+  a <- params$a
+  b <- params$b
+  c <- params$c
+  d <- params$d
+  m <- params$m
+  v <- params$v
+  
+  for (t in 1:n.iter) { # loop over iterations
+    theta <- sample.theta(sigmasq, tausq, mu)
+    sigmasq <- sample.sigmasq(theta, a, b)
+    tausq <- sample.tausq(theta, mu, c, d)
+    mu <- sample.mu(theta, tausq, m, v)
+    ## Save iteration. First p columns are theta; followed by others.
+    PARAMS <- rbind(PARAMS, c(theta, sigmasq, tausq, mu))
+  }
+  return(list(PARAMS=PARAMS))
+}
+
+sample.theta <- function(sigmasq, tausq, mu) {
+  cov <- solve(t(X)%*%X/sigmasq + I.p/tausq)
+  mean <- cov%*%(t(X)%*%y/sigmasq + mu*one.p/tausq)
+  theta <- mvrnorm(1, mu=mean, Sigma=cov)
+  return (theta)
+}
+sample.sigmasq <- function(theta, a, b) {
+  shape <- n/2 + a
+  rate <- t(y-X%*%theta)%*%(y-X%*%theta)/2 + b
+  sigmasq <- rgamma(1, shape=shape, rate=rate)
+  return (1/sigmasq)
+}
+sample.tausq <- function(theta, mu, c, d) {
+  shape <- p/2 + c
+  rate <- t(theta-mu*one.p)%*%(theta-mu*one.p)/2 + d
+  tausq <- rgamma(1, shape=shape, rate=rate)
+  return (1/tausq)
+}
+sample.mu <- function(theta, tausq, m, v) {
+  var <- solve(1/v + p/tausq)
+  mean <- var*(m/v + sum(theta)/tausq)
+  mu <- rnorm(1, mean=mean, sd=sqrt(var))
+  return (mu)
+}
+
+ex <- function() { 
+  ## RUN these lines to get the plots
+  n.iter <- 1000; verbose=0
+  gbs <- gibbs(n.iter, verbose)
+  PARAMS <- gbs$PARAMS
+  its <- 1:n.iter
+  
+#   # Plot some Theta chains.
+#   par(mfrow=c(5,2))
+#   for (i in 1:p) {
+#     plot(its, PARAMS[,p],xlab="ITER",ylab="Theta",bty="l",type="l",
+#          main=paste("Trajectories of Theta", i))
+#   }
+  
+  # Posterior estimates for each of p theta values.
+  theta.hat <- colMeans(PARAMS[,1:p])
+  print(theta.hat)
+  
+  # Order by sample size.
+  new.d <- cbind(school.ssize, school.avgs, theta.hat)
+  sorted.d <- new.d[order(new.d[,1]),]
+  avg.scores <- sorted.d[,2]
+  post.scores <- sorted.d[,3]
+  
+  plot(avg.scores, post.scores, main="Posterior vs. Sample Average Scores",
+       xlab="Sample Average Scores", ylab="Posterior Average Scores")
+  plot(1:p,(avg.scores-post.scores)/avg.scores, ylab="Shrinkage Coefficient",
+       xlab="School, Ordered By Sample Size",
+       main="Shrinkage Per School, Ordered By Sample Size")
+  
+  ## trajectory plot of SigmaSq
+  plot(its, PARAMS[,p+1],xlab="ITER",ylab="SigmaSq",bty="l",type="l",
+       main="Trajectories of SigmaSq")
+  ## trajectory plot of TauSq
+  plot(its, PARAMS[,p+2],xlab="ITER",ylab="TauSq",bty="l",type="l",
+       main="Trajectories of TauSq")
+  
+}
+
+ex()
+
+@
+
+\subsection{Shrinkage}
+
+In general, the smaller the sample size, the more extreme the sample mean, and the larger the shrinkage coefficient. 
+
+\end{document}
+
