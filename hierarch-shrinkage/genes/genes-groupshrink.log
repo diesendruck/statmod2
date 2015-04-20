@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  14 APR 2015 14:41
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  15 APR 2015 00:05
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**hierarch-shrinkage-with-means.tex
-(./hierarch-shrinkage-with-means.tex
+**genes-groupshrink.tex
+(./genes-groupshrink.tex
 LaTeX2e <2014/05/01>
 Babel <3.9k> and hyphenation patterns for 78 languages loaded.
 (/usr/local/texlive/2014/texmf-dist/tex/latex/base/article.cls
@@ -396,8 +396,8 @@ Package: amssymb 2013/01/14 v3.01 AMS font symbols
 Package: upquote 2012/04/19 v1.3 upright-quote and grave-accent glyphs in verba
 tim
 )
-(./hierarch-shrinkage-with-means.aux)
-\openout1 = `hierarch-shrinkage-with-means.aux'.
+(./genes-groupshrink.aux)
+\openout1 = `genes-groupshrink.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 63.
 LaTeX Font Info:    ... okay on input line 63.
@@ -511,73 +511,119 @@ LaTeX Font Info:    Try loading font information for U+msb on input line 64.
 
 (/usr/local/texlive/2014/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-)
-Underfull \hbox (badness 10000) in paragraph at lines 68--70
+) [1
+
+{/usr/local/texlive/2014/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+<genes-groupshrink-xyplot-gene.png, id=15, 622.325pt x 429.605pt>
+File: genes-groupshrink-xyplot-gene.png Graphic file (type png)
+
+<use genes-groupshrink-xyplot-gene.png>
+Package pdftex.def Info: genes-groupshrink-xyplot-gene.png used on input line 1
+17.
+(pdftex.def)             Requested size: 412.16965pt x 284.52756pt.
+
+<genes-groupshrink-xyplot-group.png, id=17, 622.325pt x 429.605pt>
+File: genes-groupshrink-xyplot-group.png Graphic file (type png)
+
+<use genes-groupshrink-xyplot-group.png>
+Package pdftex.def Info: genes-groupshrink-xyplot-group.png used on input line 
+119.
+(pdftex.def)             Requested size: 412.16965pt x 284.52756pt.
+
+<genes-groupshrink-mus.png, id=18, 649.42625pt x 557.08125pt>
+File: genes-groupshrink-mus.png Graphic file (type png)
+
+<use genes-groupshrink-mus.png>
+Package pdftex.def Info: genes-groupshrink-mus.png used on input line 121.
+(pdftex.def)             Requested size: 398.34933pt x 341.70615pt.
+
+<genes-groupshrink-taus.png, id=19, 649.42625pt x 557.08125pt>
+File: genes-groupshrink-taus.png Graphic file (type png)
+
+<use genes-groupshrink-taus.png>
+Package pdftex.def Info: genes-groupshrink-taus.png used on input line 123.
+(pdftex.def)             Requested size: 398.34933pt x 341.70615pt.
+
+<genes-groupshrink-betas.png, id=20, 622.325pt x 557.08125pt>
+File: genes-groupshrink-betas.png Graphic file (type png)
+
+<use genes-groupshrink-betas.png>
+Package pdftex.def Info: genes-groupshrink-betas.png used on input line 125.
+(pdftex.def)             Requested size: 513.11745pt x 459.3257pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 117--126
 
  []
 
-Package color Info: Redefining color shadecolor on input line 72.
+[2 <./genes-groupshrink-xyplot-gene.png> <./genes-groupshrink-xyplot-group.png>
+] [3 <./genes-groupshrink-mus.png> <./genes-groupshrink-taus.png>] [4 <./genes-
+groupshrink-betas.png>]
+Package color Info: Redefining color shadecolor on input line 130.
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <12> not available
-(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 74.
-<figure/unnamed-chunk-1-1.pdf, id=1, 505.89pt x 230.8625pt>
-File: figure/unnamed-chunk-1-1.pdf Graphic file (type pdf)
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 134.
+LaTeX Font Info:    Try loading font information for OMS+cmtt on input line 158
+.
 
-<use figure/unnamed-chunk-1-1.pdf>
-Package pdftex.def Info: figure/unnamed-chunk-1-1.pdf used on input line 79.
-(pdftex.def)             Requested size: 505.88875pt x 230.86543pt.
+(/Library/Frameworks/R.framework/Resources/share/texmf/tex/latex/omscmtt.fd
+File: omscmtt.fd 
+)
+LaTeX Font Info:    Font shape `OMS/cmtt/m/n' in size <12> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 158.
 
-Overfull \hbox (10.39612pt too wide) in paragraph at lines 79--80
-[][] 
+Overfull \hbox (11.36131pt too wide) in paragraph at lines 253--253
+[]    []\OT1/cmtt/m/it/12 # Use Normal-InvGamma full conditional posterior to u
+pdate Tau^^Ms, given Beta^^Ms.[][] 
  []
 
-<figure/unnamed-chunk-1-2.pdf, id=2, 505.89pt x 230.8625pt>
-File: figure/unnamed-chunk-1-2.pdf Graphic file (type pdf)
-
-<use figure/unnamed-chunk-1-2.pdf>
-Package pdftex.def Info: figure/unnamed-chunk-1-2.pdf used on input line 88.
-(pdftex.def)             Requested size: 505.88875pt x 230.86543pt.
-
-Overfull \hbox (10.39612pt too wide) in paragraph at lines 88--89
-[][] 
+[5]
+Underfull \vbox (badness 10000) detected at line 352
  []
 
-[1
 
-{/usr/local/texlive/2014/texmf-var/fonts/map/pdftex/updmap/pdftex.map} <./figur
-e/unnamed-chunk-1-1.pdf>] [2 <./figure/unnamed-chunk-1-2.pdf>] [3]
-Package color Info: Redefining color shadecolor on input line 229.
+Underfull \vbox (badness 10000) detected at line 352
+ []
 
-<figure/unnamed-chunk-2-1.pdf, id=34, 505.89pt x 505.89pt>
-File: figure/unnamed-chunk-2-1.pdf Graphic file (type pdf)
+[6]
+Underfull \vbox (badness 10000) detected at line 352
+ []
 
-<use figure/unnamed-chunk-2-1.pdf>
-Package pdftex.def Info: figure/unnamed-chunk-2-1.pdf used on input line 230.
-(pdftex.def)             Requested size: 505.88875pt x 505.89645pt.
- [4] [5 <./figure/unnamed-chunk-2-1.pdf>]
-(./hierarch-shrinkage-with-means.aux) ) 
+
+Underfull \vbox (badness 10000) detected at line 352
+ []
+
+[7]
+Underfull \vbox (badness 10000) detected at line 352
+ []
+
+
+Underfull \vbox (badness 10000) detected at line 352
+ []
+
+[8] [9] (./genes-groupshrink.aux) ) 
 Here is how much of TeX's memory you used:
- 3282 strings out of 493117
- 44204 string characters out of 6135433
- 140044 words of memory out of 5000000
- 6671 multiletter control sequences out of 15000+600000
- 12265 words of font info for 48 fonts, out of 8000000 for 9000
+ 3311 strings out of 493117
+ 44888 string characters out of 6135433
+ 183682 words of memory out of 5000000
+ 6694 multiletter control sequences out of 15000+600000
+ 12126 words of font info for 48 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 38i,15n,32p,325b,250s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2014/texmf-dist/font
-s/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2014/texmf-dist/fonts
-/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2014/texmf-dist/fonts/
-type1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/2014/texmf-dist/fonts/t
-ype1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2014/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1
-/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/p
-ublic/amsfonts/cm/cmr8.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/publ
-ic/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmtt12.pfb>
-Output written on hierarch-shrinkage-with-means.pdf (5 pages, 143644 bytes).
+ 38i,12n,32p,313b,282s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2014/texmf-dist/fonts/ty
+pe1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2014/texmf-dist/fonts/typ
+e1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2014/texmf-dist/fonts/type
+1/public/amsfonts/cm/cmitt10.pfb></usr/local/texlive/2014/texmf-dist/fonts/type
+1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1
+/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmr12.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/pub
+lic/amsfonts/cm/cmr17.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/publi
+c/amsfonts/cm/cmr8.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/a
+msfonts/cm/cmsy10.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmsy8.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsf
+onts/cm/cmtt12.pfb>
+Output written on genes-groupshrink.pdf (9 pages, 350543 bytes).
 PDF statistics:
- 78 PDF objects out of 1000 (max. 8388607)
- 54 compressed objects within 1 object stream
+ 89 PDF objects out of 1000 (max. 8388607)
+ 56 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 16 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 26 words of extra memory for PDF output out of 10000 (max. 10000000)
 
