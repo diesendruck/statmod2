@@ -41,8 +41,8 @@ Gibbs <- function(data) {
   num.stores <- length(store.names)
   
   # Create containers for chains and variables.
-  PARAMS.BY.STORE <- array(rep(NA, num.stores*4*n.iter),
-                           c(num.stores, 4, n.iter))
+  PARAMS.BY.STORE <- array(rep(NA, num.stores*4*n.iter), # This many NA's in a
+                           c(num.stores, 4, n.iter))     # 3D matrix of this size.
   MU <- matrix(NA, nrow=n.iter+1, ncol=4)
   MU[1,] <- c(mu0, mu1, mu2, mu3)
   TAUSQ <- matrix(NA, nrow=n.iter+1, ncol=4)
@@ -64,12 +64,14 @@ Gibbs <- function(data) {
       XtX <- t(X)%*%X
       Xty <- t(X)%*%y
       latest.mu <- MU[iter,]
-      diag.tausqs <- diag(c(t0sq, t1sq, t2sq, t3sq))
+      diag.tausqs <- diag(c(t0sq, t1sq, t2sq, t3sq)) # Matrix of precisions.
       b <- sample.beta(sigma2, diag.tausqs, XtX, Xty, latest.mu)
       PARAMS.BY.STORE[i,,iter] <- b
     }
     
     # Use Normal-Normal full conditional posterior to update Mu's, given Beta's.
+    # Update Mu_0, the global prior on Beta_0, using the avg and var (e.g. 
+    #   \bar{b_0} and t0sq) from all the Beta_0's for all stores.
     beta.means <- colMeans(PARAMS.BY.STORE[,,iter])
     mu0 <- sample.mu(m0, v0, num.stores, beta.means[1], t0sq)
     mu1 <- sample.mu(m1, v1, num.stores, beta.means[2], t1sq)
@@ -77,7 +79,7 @@ Gibbs <- function(data) {
     mu3 <- sample.mu(m3, v3, num.stores, beta.means[4], t3sq)
     MU[iter+1,] <- c(mu0, mu1, mu2, mu3)
     
-    # Use Normal-InvGamma full conditional posterior to update Tau's, given Beta's.
+    # Use Normal-InvGa full conditional posterior to update Tau's, given Beta's.
     t0sq <- sample.tausq(beta.means[1], MU[iter,][1], a0, b0)
     t1sq <- sample.tausq(beta.means[2], MU[iter,][2], a1, b1)
     t2sq <- sample.tausq(beta.means[3], MU[iter,][3], a2, b2)

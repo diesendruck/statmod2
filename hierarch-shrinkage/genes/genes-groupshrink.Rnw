@@ -25,7 +25,7 @@ y_{ij}(t) &= \beta_{0j}+\beta_{1j}t + \epsilon_{ij}(t) \text{, where }
 This implies the following structure:
 
 \begin{align*}
-y_j(t) &\sim\ N(X\pmb{\beta_j}, \sigma^2 I) &&\text{ where } 
+\pmb{y_j} &\sim\ N(X\pmb{\beta_j}, \sigma^2 I) &&\text{ where } 
   \beta_j=(\beta_{0j}, \beta_{1j})'\\
 \pmb{\beta_j} &\sim\ N(\pmb{\mu_{i}}, \tau_{i}^2I) 
   &&\text{ Gene-level priors}\\
@@ -36,28 +36,29 @@ y_j(t) &\sim\ N(X\pmb{\beta_j}, \sigma^2 I) &&\text{ where }
 \end{align*}
 
 The joint posterior is as follows, and can be written group-wise. Here is it
-written for group $1$.
+written for group $1$, where subscript $j$ represents genes in group $i$.
 
 \begin{align*}
-P(\pmb{\beta_1},\pmb{\mu_1},\tau_{1}^2|\pmb{y_1}) &\propto\ 
-  P(\pmb{y_1}|\pmb{\beta_1})P(\pmb{\beta_1}|\pmb{\mu_1},\tau_{1}^2)P(\pmb{\mu_1})
+P(\pmb{\beta_j},\pmb{\mu_1},\tau_{1}^2|\pmb{y_j}) &\propto\ 
+  P(\pmb{y_j}|\pmb{\beta_j})P(\pmb{\beta_j}|\pmb{\mu_1},\tau_{1}^2)P(\pmb{\mu_1})
   P(\tau_{1}^2)\\
-&\propto\ N(\pmb{y_1}|X\pmb{\beta_1}, \sigma^2 I)
-  N(\pmb{\beta_1}|\pmb{\mu_1},\tau_1^2) N(\pmb{\mu_1}|\pmb{m_1},v_{i}I)
+&\propto\ N(\pmb{y_j}|X\pmb{\beta_j}, \sigma^2 I)
+  N(\pmb{\beta_j}|\pmb{\mu_1},\tau_1^2) N(\pmb{\mu_1}|\pmb{m_1},v_{i}I)
   InvGamma(\tau_{1}^2|a_1,b_1)\\
 \vspace{3mm}\\
-P(\pmb{\beta_1}|\cdots) &\sim\ N \Bigg( 
+P(\pmb{\beta_j}|\cdots) &\sim\ N \Bigg( 
   \Big(\frac{X'X}{\sigma^2}+\frac{I}{\tau_1^2} \Big)^{-1}
-  \Big(\frac{X'\pmb{y_1}}{\sigma^2}+\frac{I}{\tau_1^2} \Big),
+  \Big(\frac{X'\pmb{y_j}}{\sigma^2}+\frac{I}{\tau_1^2}\pmb{\mu_1} \Big),
   \Big(\frac{X'X}{\sigma^2}+\frac{I}{\tau_1^2} \Big)^{-1} 
   \Bigg)\\
 P(\pmb{\mu_1}|\cdots) &\sim\ N \Bigg(
   \Big(\frac{I}{v_1}+\frac{I}{\tau_1^2} \Big)^{-1}
-  \Big(\frac{I}{v_1}\pmb{m_1}+\frac{I}{\tau_1^2}\pmb{\beta_1} \Big),
+  \Big(\frac{I}{v_1}\pmb{m_1}+\frac{I}{\tau_1^2}\bar{\pmb{\beta}}_{j: i=1} \Big),
   \Big(\frac{I}{v_1}+\frac{I}{\tau_1^2} \Big)^{-1} 
   \Bigg)\\
 P(\frac{1}{\tau_1^2}) &\sim\ Ga(a_1 + 1, 
-  \frac{(\pmb{\beta_1}-\pmb{\mu_1})'(\pmb{\beta_1}-\pmb{\mu_1})}{2} + b1)\\
+  \frac{(\bar{\pmb{\beta}}_{j: i=1}-\pmb{\mu_1})'
+        (\bar{\pmb{\beta}}_{j: i=1}-\pmb{\mu_1})  }{2} + b1)\\
 \end{align*}
 
 
@@ -83,9 +84,10 @@ library(lattice)
 library(MASS)
 
 # Get data.
-path <- paste("~/Google Drive/2. SPRING 2015/STAT MOD 2 - Prof Scott/",
-              "hierarch-shrinkage/genes", sep="")
-setwd(path)
+#path <- paste("~/Google Drive/2. SPRING 2015/STAT MOD 2 - Prof Scott/",
+#              "hierarch-shrinkage/genes", sep="")
+#setwd(path)
+setwd("~/Documents/statmod-hierarch-shrink/genes")
 data <- read.csv("droslong.csv")
 data <- data[order(data[,1], data[,2]),]
 head(data, 100)
@@ -155,7 +157,7 @@ Gibbs <- function(D, n.iter=1000) {
   mu2 <- mvrnorm(1, mu=m2, Sigma=diag(x=v2, 2))
   mu3 <- mvrnorm(1, mu=m3, Sigma=diag(x=v3, 2))
   
-  # Prepare per-store data.
+  # Prepare per-gene data.
   gene.names <- unique(D$gene)
   num.genes <- length(gene.names)
   

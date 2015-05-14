@@ -15,6 +15,7 @@ times <- 50
 
 # Initialize alpha, f, and mses.
 a <- mean(y)
+# f stores n function values for each of p functions.
 f <- array(0, dim=c(p, n))
 
 
@@ -25,14 +26,13 @@ Backfit <- function(q) {
   
   # Do t iterations, until convergence criterion.
   while (delta > 0.05) {
-    # Rather than convergence, I record all MSEs for review, below.
     
     # Do for each partial residual (kth predictor).
     #for (k in c(1, 2, 3)) {
     #for (k in c(3, 2, 1)) {
     for (k in c(2, 1, 3)) {
       
-      # Remove one column, to make p-1 by 1 matrix.
+      # Remove one column, to make p-1 by n matrix.
       f.minus.k <- as.matrix(f[-k,])
       
       # Prepare value to smooth; the Yi - a - sum(...).
@@ -42,7 +42,8 @@ Backfit <- function(q) {
       }
       
       # Fit kth residual against kth column of x.
-      partial.data <- cbind(y, x[k],to.smooth)
+      partial.data <- cbind(y, x[k], to.smooth)
+      # Order by x[k], and get fitted values (i.e. predictions) in that order.
       partial.data <- partial.data[order(partial.data[,2]),]
       predicted <- rep(0, n)
       predicted <- lowess(partial.data[,c(2,3)], f=.1)$y
@@ -50,8 +51,8 @@ Backfit <- function(q) {
       # Plot stuff.
       if (k==q) {
         if (t==1) {
-          plot(t(x[k]), to.smooth, main=paste("Fitting Residuals on X", k),
-               ylim=c(-50,100), xlab="X Value", ylab="Residual Value")
+          plot(t(x[k]), to.smooth, main=bquote("Fitting Residuals on X"[.(k)]),
+               xlab=bquote("X"[.(k)]~" Value"), ylab="Residual Value")
         }
         # Plot lines, ignoring first 20 (burn-in).
         if (t>20) {

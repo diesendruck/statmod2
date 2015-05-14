@@ -82,6 +82,8 @@ sample.z <- function(mu, beta, y, X) {
   for (i in 1:n) {
     if (y[i]==1) {
       z[i] <- rtruncnorm(1, a=0, 
+        # First term in mean gets the state-specific mean for observation i.
+        # Second term in mean is dot product of random effects with beta vector.
                          mean=mu%*%X[i,fixed.eff]+X[i,random.eff]%*%beta, sd=1)
     }
     if (y[i]==0) {
@@ -91,23 +93,32 @@ sample.z <- function(mu, beta, y, X) {
   }
   return (z)
 }
+
 sample.mu <- function(state.counts, tausq, z, X, beta) {
   n <- length(state.counts)
   C <- ginv(diag(x=(state.counts+1/tausq), n))
-  mean <- C%*%(t(X[,fixed.eff])%*%(z - X[,random.eff]%*%beta))
+  # Mu.i values are Z - X'B, where X here is just the random effect indicators.
+  mu.i.values <- z - X[,random.eff]%*%beta
+  # Want to sum the mu.i's for each state. Transpose of X[,fixed.eff] does this
+  #   by going state by state, and summing mu.i's of people in that state.
+  mean <- C%*%(t(X[,fixed.eff])%*%mu.i.values)
   mu <- mvrnorm(1, mu=mean, Sigma=C)
   return (mu)
 }
+
 sample.tausq <- function(n.states, mu) {
   shape <- n.states/2 + 1
   rate <- 1/2*(t(mu)%*%mu)
   tausq.inv <- rgamma(1, shape=shape, rate=rate)
   return (1/tausq.inv)
 }
+
 sample.beta <- function(tausq, X, y, mu, z) {
   XtX <- t(X[,random.eff])%*%X[,random.eff]
-  XtOut <- t(X[,random.eff])%*%(z - X[,fixed.eff]%*%mu)
   C <- ginv(XtX)
+  # Following result comes from writing N(z|u+X'B) in terms of B, and pattern
+  #   matching.
+  XtOut <- t(X[,random.eff])%*%(z - X[,fixed.eff]%*%mu)
   mean <- C%*%(XtOut)
   beta <- mvrnorm(1, mu=mean, Sigma=C)
   return (beta)

@@ -18,16 +18,16 @@ Main <- function() {
   
   # ------ Regular Gaussian Processes ------ #
   
-  #   for (i in seq(0.1, 1, 0.3)) {
-  #     for (j in seq(0.1, 1, 0.1)) {
-  #       par(mfrow=c(2,2))
-  #       inputs <- seq(0, 1, 0.01)
-  #       hyperparams <- c(i, j, 0.0000001)
-  #       z1 <- GaussianProcess(inputs, hyperparams, SqExp, Y=NULL)[[1]]
-  #       z2 <- GaussianProcess(inputs, hyperparams, Matern52, Y=NULL)[[1]]
-  #       #z3 <- GaussianProcess(inputs, hyperparams, LinearPlane, Y=NULL)[[1]]
-  #     }
-  #   }
+    for (i in seq(0.1, 1, 0.3)) {
+      for (j in seq(0.1, 1, 0.1)) {
+        par(mfrow=c(2,2))
+        inputs <- seq(0, 1, 0.01)
+        hyperparams <- c(i, j, 0.0000001)
+        z1 <- GaussianProcess(inputs, hyperparams, SqExp, Y=NULL)[[1]]
+        z2 <- GaussianProcess(inputs, hyperparams, Matern52, Y=NULL)[[1]]
+        #z3 <- GaussianProcess(inputs, hyperparams, LinearPlane, Y=NULL)[[1]]
+      }
+    }
   
   # ------ Gaussian Processes (posterior) Part C - (p.3) ------ #
   
